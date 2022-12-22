@@ -1,0 +1,6 @@
+.env
+teste
+base.db
+erro.log
+__pycache__
+api_cassinagem
