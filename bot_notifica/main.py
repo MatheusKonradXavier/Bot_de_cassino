@@ -30,7 +30,7 @@ def avisaBranco(lista):
     } 
   
   try:
-    requests.post(os.environ['link_api']+'salva_resultado', json = ultimo)  
+    requests.post(os.getenv('link_api')+'salva_resultado', json = ultimo)  
   except:
     geraLog.geraLog("ERRO AO SALVAR OS VALORES DO KITBLAZE AS " + datetime.now(timezone).strftime('%d/%m/%Y %H:%M:%S'))
     
@@ -38,7 +38,7 @@ def avisaBranco(lista):
   if(vezesBranco!=0 and vezesSemBranco!=0):
     resultado = botTelegram.enviarMensagem("🦷🦷🦷 BRANQUINHO DENTADO 🦷🦷🦷")
     try:
-      requests.post(os.environ['link_api']+'salva_brancodentado', json = ultimo)  
+      requests.post(os.getenv('link_api')+'salva_brancodentado', json = ultimo)  
     except:
       geraLog.geraLog("ERRO AO SALVAR OS VALORES DO KITBLAZE AS " + datetime.now(timezone).strftime('%d/%m/%Y %H:%M:%S'))
   elif(vezesSemBranco!=0):
@@ -50,7 +50,7 @@ def avisaBranco(lista):
     else :
       resultado = botTelegram.enviarMensagem("💦💦💦 UUUUUUUIIIIIIIIII BRANQUINHO " + str(vezesBranco) + " VEZES NA SUA CARA 💦💦💦")
       try:
-        requests.post(os.environ['link_api']+'salva_brancoduplo', json = ultimo)  
+        requests.post(os.getenv('link_api')+'salva_brancoduplo', json = ultimo)  
       except:
         geraLog.geraLog("ERRO AO SALVAR OS VALORES DO KITBLAZE AS " + datetime.now(timezone).strftime('%d/%m/%Y %H:%M:%S'))
   if(not resultado) :

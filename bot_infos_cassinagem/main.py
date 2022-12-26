@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-CHAVE_BOT = os.environ['bot_infos']
-link =  os.environ['link_api']
+CHAVE_BOT = os.getenv('bot_infos')
+link =  os.getenv('link_api')
 bot = telebot.TeleBot(CHAVE_BOT)
 
 @bot.message_handler(commands=["opcao1"])
