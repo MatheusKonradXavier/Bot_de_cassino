@@ -1,6 +1,7 @@
 # Bot de cassino 
 ## Sobre
 O bot de cassino é um projeto que se encontra no ar a mais de 3 meses (não na versão apresentada no github) para um certo número de pessoas, ele tem como objetivo alertar os usuários no telegram quando certos padrões acontecem em um site de aposta, além de disponibilizar certas informações a respeito da nossa base dados para os usuários no telegram.
+
 Ele foi escrito inteiramente em python, para a parte de verificar constantemente o site e seus resultados (Web Scraping) utilizei Beautiful Soup mais requests, já no armazenamento criei uma API utilizando Flask e SQLite3 para o banco de dados, a qual ainda não foi disponibilizada no github.
 
 ## Tecnologias utilizadas
