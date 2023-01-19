@@ -9,229 +9,179 @@ CHAVE_BOT = os.getenv('bot_infos')
 link = os.getenv('link_api')
 bot = telebot.TeleBot(CHAVE_BOT)
 
-
 @bot.message_handler(commands=["opcao1"])
 def opcao1(mensagem):
-    dados = requests.get(link + 'dados_analisados/1').json()
-    tamanho = int(''.join(map(str, dados['dadosB'])))
-    resultados = requests.get(
-        link + 'mostra_resultados/' + str(tamanho)).json()
-    resultados = pd.DataFrame(resultados)
-    contaBranco = int(''.join(map(str, dados['contaBrancoB'])))
-    contaCasa = int(''.join(map(str, dados['contaCasaB'])))
-    contaCasa_depoisDoBranco = int(
-        ''.join(map(str, dados['contaCasa_depoisDoBranco'])))
-    recordeBranco = int(''.join(map(str, dados['recordB'])))
-    hora = dados['hora'][0]
+    lista = requests.get(
+          link + '/mostra_resultados/' + str(0)).json()
 
-    for i, j in resultados.iterrows():
-        if (j.valores == ' 0 '):
-            contaBranco += 1
-            hora = j.horas
-            if (contaCasa_depoisDoBranco > recordeBranco):
-                recordeBranco = contaCasa_depoisDoBranco
-            contaCasa = 0
-        elif (j.valores != ' 0 '):
-            if (i != 0):
-                contaCasa += 1
-                contaCasa_depoisDoBranco += 1
+    recordeSemBranco = 0
+    vezesSemBranco = 0
+    Soma = 0
+    vezes = 0
+    cont = 0
+    start = False
+    contBranco = 0
 
-    if (len(resultados) > 1):
-        tamanho -= i
-
-    resposta = "Número de elementos contidos no banco: " + str(
-        abs(tamanho)) + "\nO número de brancos é: " + str(
-            contaBranco) + "\nO número de rodadas sem branco é: " + str(
-        contaCasa_depoisDoBranco) + "\nO ultímo branco aconteceu na hora: " + str(
-                hora) + "\nO número de jogadas sem branco desde o ultimo branco é: " + str(
-                    contaCasa) + "\nA média de rodadas sem branco é: {:.2f}".format(
-                        contaCasa_depoisDoBranco/contaBranco) + "\nO recorde de jogadas sem branco é: " + str(
-                            recordeBranco)
-
-    ultimo = {
-        "dadosB": str(tamanho),
-        "contaBrancoB": str(contaBranco),
-        "contaCasaB": str(contaCasa),
-        "contaCasa_depoisDoBranco": str(contaCasa_depoisDoBranco),
-        "hora": str(hora).replace(" ", ""),
-        "recordB": str(recordeBranco)
-    }
-
-    requests.post(os.getenv('link_api') +
-                  '/salva_dados_analisados/1', json=ultimo)
+    for i in pd.DataFrame(lista)['valores'] :
+        if( not i == ' 0 '):
+            vezesSemBranco += 1
+        else :
+            contBranco +=1
+            if(start) :
+                if(recordeSemBranco < vezesSemBranco):
+                    recordeSemBranco = vezesSemBranco 
+                if(vezesSemBranco>-1):
+                    Soma += vezesSemBranco
+                    vezes+=1
+            start = True
+            vezesSemBranco = 0
+        cont+=1
+    resposta = " NÚMERO ATUAL DE RODADAS SEM BRANCO " + str(vezesSemBranco) + "\n MÉDIA DE RODADAS SEM BRANCOS " + str(Soma//vezes) + "\n RECORDE DE RODADAS SEM BRANCOS " + str(recordeSemBranco)
 
     bot.send_message(mensagem.chat.id, resposta)
 
 
 @bot.message_handler(commands=["opcao2"])
 def opcao2(mensagem):
-    dados = requests.get(link + 'dados_analisados/2').json()
-    tamanho = int(''.join(map(str, dados['dados'])))
-    resultados = requests.get(
-        link + 'mostra_resultados/' + str(tamanho)).json()
-    resultados = pd.DataFrame(resultados)
-    aux = False
-    recordJ = int(''.join(map(str, dados['recordJ'])))
-    recordB = int(''.join(map(str, dados['recordB'])))
-    contaCasa_depoisDoDuplo = int(
-        ''.join(map(str, dados['contaCasa_depoisDoDuplo'])))
-    contaBranco_depoisDoDuplo = int(
-        ''.join(map(str, dados['contaBranco_depoisDoDuplo'])))
-    contaCasa = int(''.join(map(str, dados['contaCasa'])))
-    contaDuplo = int(''.join(map(str, dados['contaDuplo'])))
-    contaCasa_semDuplos = int(''.join(map(str, dados['contaCasa_semDuplos'])))
-    contaBranco_normal = int(''.join(map(str, dados['contaBranco_normal'])))
-    hora = dados['hora'][0]
+    lista = requests.get(
+          link + '/mostra_resultados/' + str(0)).json()
 
-    for i, j in resultados.iterrows():
-        if ((j.valores == ' 0 ') and (aux == True)):
-            contaDuplo += 1
-            aux = False
-            contaCasa_semDuplos -= 1
-            contaBranco_normal -= 1
-            contaCasa_depoisDoDuplo -= 1
-            contaBranco_depoisDoDuplo -= 1
-            hora = j.horas
-            if (contaCasa_depoisDoDuplo > recordJ):
-                recordJ = contaCasa_depoisDoDuplo
-            if (contaBranco_depoisDoDuplo > recordB):
-                recordB = contaBranco_depoisDoDuplo
-            contaCasa_depoisDoDuplo = 0
-            contaBranco_depoisDoDuplo = 0
-        elif ((j.valores == ' 0 ') and (aux == False)):
-            if (i != 0):
-                aux = True
-                contaCasa_semDuplos += 1
-                contaBranco_normal += 1
-                contaCasa_depoisDoDuplo += 1
-                contaBranco_depoisDoDuplo += 1
-        else:
-            if (i != 0):
-                aux = False
-                contaCasa_semDuplos += 1
-                contaCasa_depoisDoDuplo += 1
+    recordeSemDuplo = 0
+    recordeBrancoEntreDuplos = 0
+    vezesSemDuplo = 0
+    Soma = 0
+    vezes = 0
+    SomaB =0
+    vezesB = 0
+    contBranco = 0
+    entreDuplos = 0
+    cont = 0
+    start = False
 
-    if (len(resultados) > 1):
-        tamanho -= i
+    for i in pd.DataFrame(lista)['valores'] :
+        if( not i == ' 0 '):
+            vezesSemDuplo += 1
+            contBranco = 0
+        else :
+            contBranco +=1
+            entreDuplos +=1
+            if(contBranco >= 2):
+                if(start) :
+                    if(recordeBrancoEntreDuplos< entreDuplos-2):
+                        recordeBrancoEntreDuplos = entreDuplos-2
+                    if(entreDuplos-2>3):
+                        SomaB+=entreDuplos-2
+                        vezesB+=1
+                    if(recordeSemDuplo < vezesSemDuplo-2):
+                        recordeSemDuplo = vezesSemDuplo-2
+                    if(vezesSemDuplo-2>2):
+                        Soma += vezesSemDuplo-2
+                        vezes+=1
+                start = True
+                entreDuplos = 0
+                contBranco = 0
+                vezesSemDuplo = 0
+            else:
+                vezesSemDuplo += 1
+        cont +=1
 
-    resposta = "Número de elementos contidos no banco: " + str(abs(tamanho)) + "\nO número de brancos duplos é: " + str(contaDuplo) + "\nO último branco duplo aconteceu na hora: " + str(hora) + "\n" + "O número de jogadas sem branco duplo é : " + str(
-        contaCasa_semDuplos) + "\nO número de brancos desde o último branco duplo é : " + str(
-            contaBranco_depoisDoDuplo) + "\nA média de rodadas sem brancos duplos é: {:.2f}".format(contaCasa_semDuplos/contaDuplo) + "\nA média de brancos entre brancos duplos é: {:.2f}".format(
-                contaBranco_normal/contaDuplo) + "\nO recorde de jogadas sem branco duplo é: " + str(
-                    recordJ) + "\nO recorde de brancos sem branco duplo é: " + str(recordB)
-
-    ultimo = {
-        "dados": str(tamanho),
-        "contaBranco_normal": str(contaBranco_normal),
-        "contaCasa": str(contaCasa),
-        "contaCasa_semDuplos": str(contaCasa_semDuplos),
-        "contaDuplo": str(contaDuplo),
-        "recordJ": str(recordJ),
-        "recordB": str(recordB),
-        "contaCasa_depoisDoDuplo": str(contaCasa_depoisDoDuplo),
-        "contaBranco_depoisDoDuplo": str(contaBranco_depoisDoDuplo),
-        "hora": str(hora).replace(" ", "")
-    }
-
-    requests.post(os.getenv('link_api') +
-                  '/salva_dados_analisados/2', json=ultimo)
-
+    resposta = " NÚMERO ATUAL DE RODADAS SEM DUPLOS " + str(vezesSemDuplo) + "\n NÚMERO ATUAL DE BRANCOS SEM DUPLOS " + str(entreDuplos) + "\n MÉDIA DE BRANCOS ENTRE DUPLOS " + str(SomaB//vezesB)+ "\n RECORDE DE BRANCOS ENTRE DUPLOS " + str(recordeBrancoEntreDuplos) + "\n MÉDIA DE RODADAS SEM DUPLOS " + str(Soma//vezes) + "\n RECORDE DE RODADAS SEM DUPLOS " + str(recordeSemDuplo)
     bot.send_message(mensagem.chat.id, resposta)
 
 
 @bot.message_handler(commands=["opcao3"])
 def opcao3(mensagem):
-    dados = requests.get(link + 'dados_analisados/3').json()
-    tamanho = int(''.join(map(str, dados['dadosD'])))
-    resultados = requests.get(
-        link + 'mostra_resultados/' + str(tamanho)).json()
-    resultados = pd.DataFrame(resultados)
-    detectaBranco = False
-    detectaCasa_depoisDoBranco = False
-    contaCasa_semDentado = int(
-        ''.join(map(str, dados['contaCasa_semDentado'])))
-    contaCasa_depoisDoDentado = int(
-        ''.join(map(str, dados['contaCasa_depoisDoDentado'])))
-    contaBranco_depoisDoDentado = int(
-        ''.join(map(str, dados['contaBranco_depoisDoDentado'])))
-    brancoDentadoD = int(''.join(map(str, dados['brancoDentadoD'])))
-    contaBranco_normal = int(''.join(map(str, dados['contaBranco_normal'])))
-    recordJ = int(''.join(map(str, dados['recordJD'])))
-    recordB = int(''.join(map(str, dados['recordBD'])))
-    hora = dados['hora'][0]
-    for i, j in resultados.iterrows():
-        if ((j.valores == ' 0 ') and (detectaBranco == False)):
-            if (i != 0):
-                detectaBranco = True
-                contaCasa_semDentado += 1
-                contaBranco_normal += 1
-                contaCasa_depoisDoDentado += 1
-                contaBranco_depoisDoDentado += 1
-        elif ((j.valores == ' 0 ') and (detectaBranco == True) and (detectaCasa_depoisDoBranco == False)):
-            if (i != 0):
-                detectaBranco = False
-                contaBranco_normal += 1
-                contaCasa_semDentado += 1
-                contaCasa_depoisDoDentado += 1
-                contaBranco_depoisDoDentado += 1
-        elif ((j.valores == ' 0 ') and (detectaBranco == True) and (detectaCasa_depoisDoBranco == True)):
-            brancoDentadoD += 1
-            detectaBranco = False
-            detectaCasa_depoisDoBranco = False
-            contaCasa_semDentado -= 1
-            contaBranco_normal -= 1
-            contaCasa_depoisDoDentado -= 2
-            contaBranco_depoisDoDentado -= 1
-            hora = j.horas
-            if (contaCasa_depoisDoDentado > recordJ):
-                recordJ = contaCasa_depoisDoDentado
-            if (contaBranco_depoisDoDentado > recordB):
-                recordB = contaBranco_depoisDoDentado
-            contaCasa_depoisDoDentado = 0
-            contaBranco_depoisDoDentado = 0
-        if ((j.valores != ' 0 ') and (detectaBranco == True) and (detectaCasa_depoisDoBranco == False)):
-            if (i != 0):
-                detectaCasa_depoisDoBranco = True
-                contaCasa_semDentado += 1
-                contaCasa_depoisDoDentado += 1
-        elif ((j.valores != ' 0 ') and (detectaCasa_depoisDoBranco == True)):
-            if (i != 0):
-                detectaCasa_depoisDoBranco = False
-                detectaBranco = False
-                contaCasa_semDentado += 1
-                contaCasa_depoisDoDentado += 1
-        elif ((j.valores != ' 0 ') and (detectaBranco == False) and (detectaCasa_depoisDoBranco == False)):
-            if (i != 0):
-                contaCasa_semDentado += 1
-                contaCasa_depoisDoDentado += 1
-    if (len(resultados) > 1):
-        tamanho -= i
+    lista = requests.get(
+          link + '/mostra_resultados/' + str(0)).json()
 
-    resposta = "Número de elementos contidos no banco: " + str(abs(tamanho)) + "\nO último branco dentado aconteceu na hora : " + str(hora) + "\nO número de jogadas sem branco dentado é : " + str(
-        contaCasa_semDentado) + "\n" + "O número de brancos desde o último branco dentado é : " + str(
-            contaBranco_depoisDoDentado) + "\nO número de branco dentado é: " + str(
-                brancoDentadoD) + "\nA média de jogadas sem branco dentado é: {:.2f}".format(
-                    contaCasa_semDentado/brancoDentadoD) + "\nA média de brancos entre brancos dentados é: {:.2f}".format(
-                        contaBranco_normal/brancoDentadoD) + "\nO recorde de jogadas sem brancos dentados é: " + str(
-                            recordJ) + "\nO recorde de brancos sem branco dentado é: " + str(recordB)
+    recordeSemDentado = recordeSemBrancos = jogadasBrancos = 0
+    jogadas = vezesSemDentado = contBranco = 0
+    soma = somaB = vezes = 0
 
-    ultimo = {
-        "dadosD": str(tamanho),
-        "contaCasa_semDentado": str(contaCasa_semDentado),
-        "contaCasa_depoisDoDentado": str(contaCasa_depoisDoDentado),
-        "contaBranco_depoisDoDentado": str(contaBranco_depoisDoDentado),
-        "brancoDentadoD": str(brancoDentadoD),
-        "contaBranco_normal": str(contaBranco_normal),
-        "recordJD": str(recordJ),
-        "recordBD": str(recordB),
-        "hora": str(hora).replace(" ", "")
-    }
+    for i in pd.DataFrame(lista)['valores'] :
+        if( not i == ' 0 '):
+            vezesSemDentado +=1
+            jogadas+=1
+            if(not(contBranco == 1 and vezesSemDentado == 1)):
+                contBranco = 0
+        else :
+            if(not(vezesSemDentado == 1)):
+                jogadas+=1
+                vezesSemDentado = 0
+                contBranco=1
+                jogadasBrancos +=1
+            elif(contBranco==1):
+                if(jogadasBrancos > recordeSemBrancos):
+                    recordeSemBrancos = jogadasBrancos
+                if(jogadas > recordeSemDentado):
+                    recordeSemDentado = jogadas
+                vezes+=1
+                somaB +=jogadasBrancos
+                soma+=jogadas
+                jogadas = 0
+                jogadasBrancos = 0
+                vezesSemDentado = 0    
 
-    requests.post(os.getenv('link_api') +
-                  '/salva_dados_analisados/3', json=ultimo)
+    resposta = ("  Recorde de jogadas entre dentados " +str(recordeSemDentado)+ 
+                "\n Recorde de brancos entre dentados " +str(recordeSemBrancos)+ 
+                "\n Média de brancos entre dentados " +str(somaB//vezes)+ 
+                "\n Média de jogadas entre dentados " +str(soma//vezes)+ 
+                "\n Número atual de jogadas sem dentado " +str(jogadas)+ 
+                "\n Número atual de brancos sem dentado " +str(jogadasBrancos))
 
     bot.send_message(mensagem.chat.id, resposta)
 
+@bot.message_handler(commands=["opcao4"])
+def opcao4(mensagem):
+    lista = requests.get(
+          link + '/mostra_resultados/' + str(0)).json()
+
+    vezesSemDentado = 0
+    contBranco = 0
+    cont = 0
+    vezesSemNada =0
+    brancoSemNada =0
+    recordeDeBrancoSemNada =0
+    somaBSN = 0
+    vezesBSN = 0
+
+    for i in pd.DataFrame(lista)['valores'] :
+        if( not i == ' 0 '):
+            vezesSemDentado +=1
+            vezesSemNada +=1
+            if(not(contBranco == 1 and vezesSemDentado == 1)):
+                contBranco = 0
+        else :
+            contBranco+=1
+            brancoSemNada+=1
+            if(not(vezesSemDentado == 1)):
+                vezesSemDentado = 0
+            if(contBranco == 2 and vezesSemDentado == 1):
+                if((brancoSemNada - 2 ) > recordeDeBrancoSemNada):
+                    recordeDeBrancoSemNada = brancoSemNada - 2
+                if(brancoSemNada - 2 <0 ):
+                    somaBSN += 0
+                    vezesBSN +=1
+                else:
+                    somaBSN += brancoSemNada - 2
+                    vezesBSN +=1
+                brancoSemNada = 0
+                vezesSemNada = 0
+            elif(contBranco>=2):
+                if((brancoSemNada - 2 ) > recordeDeBrancoSemNada):
+                    recordeDeBrancoSemNada = brancoSemNada - 2
+                if(brancoSemNada - 2 <0 ):
+                    somaBSN += 0
+                    vezesBSN +=1
+                else:
+                    somaBSN += brancoSemNada - 2
+                    vezesBSN +=1
+                brancoSemNada = 0
+                vezesSemNada = 0
+        cont +=1
+
+    resposta = " O NÚMERO DE BRANCOS SEM DENTADO OU DUPLO É "+str(brancoSemNada) + "\n O RECORDE DE BRANCOS SEM NADA É "+ str(recordeDeBrancoSemNada) + "\n A MÉDIA DE BRANCOS SEM NADA É " + str(somaBSN//vezesBSN)
+    bot.send_message(mensagem.chat.id, resposta)
 
 def verificar(mensagem):
     return True
@@ -244,8 +194,15 @@ def responder(mensagem):
      /opcao1 Informações do último branco
      /opcao2 Informações do último branco duplo
      /opcao3 Informações do último branco dentado
+     /opcao4 Infos sobre dentados e duplos juntos
      Responder qualquer outra coisa não vai funcionar, clique em uma das opções"""
     bot.reply_to(mensagem, texto)
 
+def iniciaBot(bot):
+    try:
+        bot.polling()
+    except:
+        iniciaBot(bot)
 
-bot.polling()
+if __name__ == "__main__":
+    iniciaBot(bot)

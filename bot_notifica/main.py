@@ -16,6 +16,7 @@ timezone = pytz.timezone('America/Sao_Paulo')
 def avisaBranco(lista):
     vezesSemBranco = 0
     vezesBranco = 0
+    nRodadas = 0
     for i, j in lista:
         if (int(j.Valores) != 0):
             vezesSemBranco += 1
@@ -23,7 +24,9 @@ def avisaBranco(lista):
                 vezesBranco = 0
         else:
             if (vezesBranco == 0):
-                vezesSemBranco = 0
+              if(i == 99):
+                  nRodadas = vezesSemBranco
+              vezesSemBranco = 0
             vezesBranco += 1
         ultimo = {
             "resultado": j.Valores,
@@ -52,7 +55,7 @@ def avisaBranco(lista):
     else:
         if (vezesBranco == 1):
             resultado = botTelegram.enviarMensagem(
-                "🌝🌝🌝 BRANQUINHO NA SUA CARA 🌝🌝🌝 ")
+                 "🌝🌝🌝 BRANQUINHO NA SUA CARA APÓS "+ str(nRodadas) +" RODADAS 🌝🌝🌝 ")
         else:
             resultado = botTelegram.enviarMensagem(
                 "💦💦💦 UUUUUUUIIIIIIIIII BRANQUINHO " + str(vezesBranco) + " VEZES NA SUA CARA 💦💦💦")
