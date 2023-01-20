@@ -12,11 +12,9 @@ from datetime import datetime
 load_dotenv()
 timezone = pytz.timezone('America/Sao_Paulo')
 
-
 def avisaBranco(lista):
-    vezesSemBranco = 0
-    vezesBranco = 0
-    nRodadas = 0
+    vezesSemBranco = vezesBranco = nRodadas = 0
+
     for i, j in lista:
         if (int(j.Valores) != 0):
             vezesSemBranco += 1
