@@ -12,6 +12,7 @@ from datetime import datetime
 load_dotenv()
 timezone = pytz.timezone('America/Sao_Paulo')
 
+
 def avisaBranco(lista):
     vezesSemBranco = vezesBranco = nRodadas = 0
 
@@ -47,7 +48,7 @@ def avisaBranco(lista):
             geraLog.geraLog("ERRO AO SALVAR OS VALORES DO KITBLAZE AS " +
                             datetime.now(timezone).strftime('%d/%m/%Y %H:%M:%S'))
     elif (vezesSemBranco != 0):
-        if (vezesSemBranco in [50, 60, 70, 80, 90, 100]):
+        if (vezesSemBranco in [40, 50, 60, 70, 80, 90, 100]):
             resultado = botTelegram.enviarMensagem(
                 "🚨🚨🚨 HORA DE APOSTAR MERMÃO, " + str(vezesSemBranco) + " RODADAS SEM BRANCO 🚨🚨🚨")
     else:
